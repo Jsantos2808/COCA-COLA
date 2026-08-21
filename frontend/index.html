@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coca-Cola Stock Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            coke: '#F40009',
+            cokedark: '#B80004',
+            ink: '#1D1D1B'
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-neutral-100 min-h-screen text-ink antialiased flex flex-col">
+
+  <header class="bg-gradient-to-r from-coke to-cokedark shadow-lg">
+    <div class="max-w-6xl mx-auto px-6 py-5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <span class="bg-white text-coke font-black italic text-2xl w-12 h-12 rounded-full flex items-center justify-center shadow">Co</span>
+        <div>
+          <h1 class="text-white text-2xl font-black tracking-tight">Coca-Cola Stock Portal</h1>
+          <p class="text-red-100 text-sm">Gestion de inventario en tiempo real</p>
+        </div>
+      </div>
+      <button id="refresh-btn" type="button"
+        class="flex items-center gap-2 bg-white text-coke font-bold px-4 py-2 rounded-full shadow hover:bg-red-50 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Refrescar stock
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-10 w-full flex-1">
+    <section>
+      <h2 class="text-xl font-bold mb-1">Productos disponibles</h2>
+      <p class="text-neutral-500 text-sm mb-6">Selecciona un producto para despachar un pedido.</p>
+      <p id="loading-message" class="text-neutral-500 text-sm">Cargando productos...</p>
+      <div id="products-grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+  </main>
+
+  <footer class="bg-ink text-neutral-400 text-center text-sm py-4">
+    Coca-Cola Stock Portal &middot; Portal de gestion de inventarios
+  </footer>
+
+  <div id="toast-container" class="fixed top-6 right-6 z-50 space-y-3 w-80"></div>
+
+  <div id="order-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      <h3 class="text-lg font-black mb-4 border-b-4 border-coke pb-2 inline-block">Despachar pedido</h3>
+      <form id="order-form" class="space-y-4 mt-2">
+        <div>
+          <label for="product-select" class="block text-sm font-semibold mb-1">Producto</label>
+          <select id="product-select"
+            class="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coke"></select>
+        </div>
+        <div>
+          <label for="quantity-input" class="block text-sm font-semibold mb-1">Cantidad</label>
+          <input type="number" id="quantity-input" min="1" step="1" value="1" required
+            class="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coke" />
+        </div>
+        <p id="modal-stock-info" class="text-sm text-neutral-500"></p>
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" id="cancel-order-btn"
+            class="px-4 py-2 rounded-lg border border-neutral-300 font-semibold hover:bg-neutral-100 transition">Cancelar</button>
+          <button type="submit" id="submit-order-btn"
+            class="px-4 py-2 rounded-lg bg-coke text-white font-bold hover:bg-cokedark transition">Confirmar pedido</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
