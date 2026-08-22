@@ -27,6 +27,23 @@ function isValidProductPayload({ name, stock, price }) {
   return hasName && hasStock && hasPrice;
 }
 
+function findProduct(products, productId) {
+  return products.find((item) => item.id === productId);
+}
+
+function validateStockOperation(productId, quantity, products, invalidMessage) {
+  if (!isValidProductId(productId) || !isValidQuantity(quantity)) {
+    return { error: invalidMessage, status: HTTP_BAD_REQUEST };
+  }
+
+  const product = findProduct(products, productId);
+  if (!product) {
+    return { error: 'Producto no encontrado', status: HTTP_NOT_FOUND };
+  }
+
+  return { product };
+}
+
 function enableCors(request, response, next) {
   response.header('Access-Control-Allow-Origin', '*');
   response.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -81,47 +98,50 @@ function createApp() {
 
   app.post('/api/entries', (request, response) => {
     const { productId, quantity } = request.body ?? {};
-    const product = products.find((item) => item.id === productId);
+    const validation = validateStockOperation(
+      productId,
+      quantity,
+      products,
+      'Datos de entrada invalidos'
+    );
 
-    if (!isValidProductId(productId) || !isValidQuantity(quantity)) {
-      response.status(HTTP_BAD_REQUEST).json({ error: 'Datos de entrada invalidos' });
+    if (validation.error) {
+      response.status(validation.status).json({ error: validation.error });
       return;
     }
-    if (!product) {
-      response.status(HTTP_NOT_FOUND).json({ error: 'Producto no encontrado' });
-      return;
-    }
 
-    product.stock += quantity;
+    validation.product.stock += quantity;
     response.status(HTTP_OK).json({
       message: 'Entrada de stock registrada',
-      productId: product.id,
+      productId: validation.product.id,
       addedQuantity: quantity,
-      currentStock: product.stock,
+      currentStock: validation.product.stock,
     });
   });
 
   app.post('/api/orders', (request, response) => {
     const { productId, quantity } = request.body ?? {};
-    const product = products.find((item) => item.id === productId);
+    const validation = validateStockOperation(
+      productId,
+      quantity,
+      products,
+      'Datos del pedido invalidos'
+    );
 
-    if (!isValidProductId(productId) || !isValidQuantity(quantity)) {
-      response.status(HTTP_BAD_REQUEST).json({ error: 'Datos del pedido invalidos' });
+    if (validation.error) {
+      response.status(validation.status).json({ error: validation.error });
       return;
     }
-    if (!product) {
-      response.status(HTTP_NOT_FOUND).json({ error: 'Producto no encontrado' });
-      return;
-    }
-    if (product.stock < quantity) {
+
+    if (validation.product.stock < quantity) {
       response.status(HTTP_BAD_REQUEST).json({ error: 'Stock insuficiente' });
       return;
     }
 
-    product.stock -= quantity;
+    validation.product.stock -= quantity;
     response.status(HTTP_OK).json({
       message: 'Pedido procesado con exito',
-      remainingStock: product.stock,
+      remainingStock: validation.product.stock,
     });
   });
 

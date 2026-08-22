@@ -19,6 +19,13 @@ describe('Coca-Cola Stock Portal API', () => {
     });
   });
 
+  describe('CORS', () => {
+    it('deberia responder 204 en preflight OPTIONS', async () => {
+      const response = await request(app).options('/api/products');
+      expect(response.status).toBe(204);
+    });
+  });
+
   describe('GET /api/products', () => {
     it('deberia devolver un arreglo con 3 productos', async () => {
       const response = await request(app).get('/api/products');
@@ -84,6 +91,15 @@ describe('Coca-Cola Stock Portal API', () => {
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Producto no encontrado');
     });
+
+    it('deberia retornar 400 cuando la cantidad es invalida', async () => {
+      const response = await request(app)
+        .post('/api/entries')
+        .send({ productId: 1, quantity: 0 });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Datos de entrada invalidos');
+    });
   });
 
   describe('POST /api/orders', () => {
@@ -112,6 +128,36 @@ describe('Coca-Cola Stock Portal API', () => {
       const catalogResponse = await request(app).get('/api/products');
       const unchangedProduct = catalogResponse.body.find((product) => product.id === 3);
       expect(unchangedProduct.stock).toBe(45);
+    });
+
+    it('deberia retornar 404 cuando el producto no existe', async () => {
+      const response = await request(app)
+        .post('/api/orders')
+        .send({ productId: 99, quantity: 1 });
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Producto no encontrado');
+    });
+
+    it('deberia retornar 400 cuando los datos del pedido son invalidos', async () => {
+      const response = await request(app)
+        .post('/api/orders')
+        .send({ productId: 'x', quantity: -5 });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Datos del pedido invalidos');
+    });
+  });
+
+  describe('Validacion de body', () => {
+    it('deberia retornar 400 cuando el JSON es invalido', async () => {
+      const response = await request(app)
+        .post('/api/orders')
+        .set('Content-Type', 'application/json')
+        .send('{invalid');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Cuerpo de la peticion invalido');
     });
   });
 });
