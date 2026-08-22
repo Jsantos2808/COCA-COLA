@@ -165,13 +165,21 @@ function closeEntryModal() {
   elements.entryModal.classList.add('hidden');
 }
 
+async function parseJsonResponse(response) {
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('La API no respondio correctamente. Reinicia el backend (npm start en /backend).');
+  }
+  return response.json();
+}
+
 async function loadProducts(showFeedback = false) {
   try {
     const response = await fetch(`${API_BASE_URL}/api/products`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-    products = await response.json();
+    products = await parseJsonResponse(response);
     renderProducts();
     populateProductSelect();
     if (showFeedback) {
@@ -199,7 +207,7 @@ async function handleOrderSubmit(event) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const result = await response.json();
+    const result = await parseJsonResponse(response);
 
     if (!response.ok) {
       throw new Error(result.error || 'No se pudo procesar el pedido');
@@ -231,7 +239,7 @@ async function handleProductSubmit(event) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const result = await response.json();
+    const result = await parseJsonResponse(response);
 
     if (!response.ok) {
       throw new Error(result.error || 'No se pudo agregar el producto');
@@ -262,7 +270,7 @@ async function handleEntrySubmit(event) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const result = await response.json();
+    const result = await parseJsonResponse(response);
 
     if (!response.ok) {
       throw new Error(result.error || 'No se pudo registrar la entrada');
