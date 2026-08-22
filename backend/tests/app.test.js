@@ -60,6 +60,32 @@ describe('Coca-Cola Stock Portal API', () => {
     });
   });
 
+  describe('POST /api/entries', () => {
+    it('deberia aumentar el stock de un producto existente', async () => {
+      const response = await request(app)
+        .post('/api/entries')
+        .send({ productId: 3, quantity: 20 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Entrada de stock registrada');
+      expect(response.body.addedQuantity).toBe(20);
+      expect(response.body.currentStock).toBe(65);
+
+      const catalogResponse = await request(app).get('/api/products');
+      const updatedProduct = catalogResponse.body.find((product) => product.id === 3);
+      expect(updatedProduct.stock).toBe(65);
+    });
+
+    it('deberia retornar 404 cuando el producto no existe', async () => {
+      const response = await request(app)
+        .post('/api/entries')
+        .send({ productId: 99, quantity: 10 });
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Producto no encontrado');
+    });
+  });
+
   describe('POST /api/orders', () => {
     it('deberia descontar el stock correctamente', async () => {
       const response = await request(app)

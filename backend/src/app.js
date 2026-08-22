@@ -79,6 +79,28 @@ function createApp() {
     response.status(HTTP_CREATED).json(product);
   });
 
+  app.post('/api/entries', (request, response) => {
+    const { productId, quantity } = request.body ?? {};
+    const product = products.find((item) => item.id === productId);
+
+    if (!isValidProductId(productId) || !isValidQuantity(quantity)) {
+      response.status(HTTP_BAD_REQUEST).json({ error: 'Datos de entrada invalidos' });
+      return;
+    }
+    if (!product) {
+      response.status(HTTP_NOT_FOUND).json({ error: 'Producto no encontrado' });
+      return;
+    }
+
+    product.stock += quantity;
+    response.status(HTTP_OK).json({
+      message: 'Entrada de stock registrada',
+      productId: product.id,
+      addedQuantity: quantity,
+      currentStock: product.stock,
+    });
+  });
+
   app.post('/api/orders', (request, response) => {
     const { productId, quantity } = request.body ?? {};
     const product = products.find((item) => item.id === productId);

@@ -31,7 +31,14 @@ const elements = {
   productStockInput: document.getElementById('product-stock-input'),
   productPriceInput: document.getElementById('product-price-input'),
   cancelProductButton: document.getElementById('cancel-product-btn'),
-  submitProductButton: document.getElementById('submit-product-btn')
+  submitProductButton: document.getElementById('submit-product-btn'),
+  entryModal: document.getElementById('entry-modal'),
+  entryForm: document.getElementById('entry-form'),
+  entryProductSelect: document.getElementById('entry-product-select'),
+  entryQuantityInput: document.getElementById('entry-quantity-input'),
+  entryStockInfo: document.getElementById('entry-stock-info'),
+  cancelEntryButton: document.getElementById('cancel-entry-btn'),
+  submitEntryButton: document.getElementById('submit-entry-btn')
 };
 
 let products = [];
@@ -72,10 +79,16 @@ function renderProducts() {
             Stock: ${product.stock}
           </span>
         </div>
-        <button type="button" data-product-id="${product.id}"
-          class="order-btn mt-auto bg-ink text-white font-bold px-4 py-2 rounded-lg hover:bg-neutral-700 transition">
-          Despachar pedido
-        </button>
+        <div class="mt-auto grid grid-cols-2 gap-2">
+          <button type="button" data-product-id="${product.id}"
+            class="entry-btn border border-ink text-ink font-bold px-3 py-2 rounded-lg hover:bg-neutral-100 transition">
+            Dar entrada
+          </button>
+          <button type="button" data-product-id="${product.id}"
+            class="order-btn bg-ink text-white font-bold px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
+            Despachar
+          </button>
+        </div>
       </article>`
     )
     .join('');
@@ -83,21 +96,35 @@ function renderProducts() {
   document.querySelectorAll('.order-btn').forEach((button) => {
     button.addEventListener('click', () => openOrderModal(Number(button.dataset.productId)));
   });
+  document.querySelectorAll('.entry-btn').forEach((button) => {
+    button.addEventListener('click', () => openEntryModal(Number(button.dataset.productId)));
+  });
 }
 
 function populateProductSelect() {
-  elements.productSelect.innerHTML = products
+  const options = products
     .map((product) => `<option value="${product.id}">${escapeHtml(product.name)}</option>`)
     .join('');
+  elements.productSelect.innerHTML = options;
+  elements.entryProductSelect.innerHTML = options;
 }
 
 function getSelectedProduct() {
   return products.find((item) => item.id === Number(elements.productSelect.value));
 }
 
+function getSelectedEntryProduct() {
+  return products.find((item) => item.id === Number(elements.entryProductSelect.value));
+}
+
 function updateModalStockInfo() {
   const product = getSelectedProduct();
   elements.modalStockInfo.textContent = product ? `Stock disponible: ${product.stock} unidades` : '';
+}
+
+function updateEntryStockInfo() {
+  const product = getSelectedEntryProduct();
+  elements.entryStockInfo.textContent = product ? `Stock actual: ${product.stock} unidades` : '';
 }
 
 function openOrderModal(productId) {
@@ -123,6 +150,19 @@ function openProductModal() {
 
 function closeProductModal() {
   elements.productModal.classList.add('hidden');
+}
+
+function openEntryModal(productId) {
+  if (productId) {
+    elements.entryProductSelect.value = String(productId);
+  }
+  elements.entryQuantityInput.value = '1';
+  updateEntryStockInfo();
+  elements.entryModal.classList.remove('hidden');
+}
+
+function closeEntryModal() {
+  elements.entryModal.classList.add('hidden');
 }
 
 async function loadProducts(showFeedback = false) {
@@ -207,12 +247,46 @@ async function handleProductSubmit(event) {
   }
 }
 
+async function handleEntrySubmit(event) {
+  event.preventDefault();
+
+  const payload = {
+    productId: Number(elements.entryProductSelect.value),
+    quantity: Number(elements.entryQuantityInput.value)
+  };
+
+  try {
+    elements.submitEntryButton.disabled = true;
+    const response = await fetch(`${API_BASE_URL}/api/entries`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'No se pudo registrar la entrada');
+    }
+
+    closeEntryModal();
+    showToast('success', `${result.message}. Stock actual: ${result.currentStock}`);
+    await loadProducts();
+  } catch (error) {
+    showToast('error', error.message);
+  } finally {
+    elements.submitEntryButton.disabled = false;
+  }
+}
+
 elements.refreshButton.addEventListener('click', () => loadProducts(true));
 elements.addProductButton.addEventListener('click', openProductModal);
 elements.cancelButton.addEventListener('click', closeOrderModal);
 elements.cancelProductButton.addEventListener('click', closeProductModal);
+elements.cancelEntryButton.addEventListener('click', closeEntryModal);
 elements.orderForm.addEventListener('submit', handleOrderSubmit);
 elements.productForm.addEventListener('submit', handleProductSubmit);
+elements.entryForm.addEventListener('submit', handleEntrySubmit);
 elements.productSelect.addEventListener('change', updateModalStockInfo);
+elements.entryProductSelect.addEventListener('change', updateEntryStockInfo);
 
 loadProducts();
