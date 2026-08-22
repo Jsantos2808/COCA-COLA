@@ -122,6 +122,7 @@ Endpoints:
 
 - `GET /api/health` — estado del servicio
 - `GET /api/products` — inventario
+- `POST /api/products` — cuerpo `{ "name": "Fanta 600ml", "stock": 40, "price": 1.3 }`
 - `POST /api/orders` — cuerpo `{ "productId": 1, "quantity": 2 }`
 
 ### Frontend (UI)
@@ -150,8 +151,9 @@ npm run coverage
 Portal de **stock en tiempo real**:
 
 1. Lista productos Coca-Cola / Sprite con precio y existencias.
-2. Permite **despachar pedidos** y descontar stock.
-3. Valida datos inválidos y stock insuficiente en la API.
+2. Permite **agregar productos** al inventario (nombre, stock y precio).
+3. Permite **despachar pedidos** y descontar stock.
+4. Valida datos inválidos y stock insuficiente en la API.
 
 ---
 

@@ -7,6 +7,7 @@ const INITIAL_PRODUCTS = [
 ];
 
 const HTTP_OK = 200;
+const HTTP_CREATED = 201;
 const HTTP_BAD_REQUEST = 400;
 const HTTP_NOT_FOUND = 404;
 const HTTP_INTERNAL_ERROR = 500;
@@ -17,6 +18,13 @@ function isValidProductId(productId) {
 
 function isValidQuantity(quantity) {
   return Number.isInteger(quantity) && quantity > 0;
+}
+
+function isValidProductPayload({ name, stock, price }) {
+  const hasName = typeof name === 'string' && name.trim().length > 0;
+  const hasStock = Number.isInteger(stock) && stock >= 0;
+  const hasPrice = typeof price === 'number' && Number.isFinite(price) && price >= 0;
+  return hasName && hasStock && hasPrice;
 }
 
 function enableCors(request, response, next) {
@@ -47,6 +55,28 @@ function createApp() {
 
   app.get('/api/products', (request, response) => {
     response.status(HTTP_OK).json(products);
+  });
+
+  app.post('/api/products', (request, response) => {
+    const { name, stock, price } = request.body ?? {};
+
+    if (!isValidProductPayload({ name, stock, price })) {
+      response.status(HTTP_BAD_REQUEST).json({
+        error: 'Datos del producto invalidos. Requiere name, stock (>=0) y price (>=0)',
+      });
+      return;
+    }
+
+    const nextId = products.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
+    const product = {
+      id: nextId,
+      name: name.trim(),
+      stock,
+      price,
+    };
+
+    products.push(product);
+    response.status(HTTP_CREATED).json(product);
   });
 
   app.post('/api/orders', (request, response) => {

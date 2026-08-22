@@ -32,6 +32,34 @@ describe('Coca-Cola Stock Portal API', () => {
     });
   });
 
+  describe('POST /api/products', () => {
+    it('deberia agregar un producto nuevo al catalogo', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .send({ name: 'Fanta Naranja 600ml', stock: 60, price: 1.3 });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toMatchObject({
+        id: 4,
+        name: 'Fanta Naranja 600ml',
+        stock: 60,
+        price: 1.3,
+      });
+
+      const catalogResponse = await request(app).get('/api/products');
+      expect(catalogResponse.body).toHaveLength(4);
+    });
+
+    it('deberia retornar 400 cuando faltan datos del producto', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .send({ name: '', stock: -1, price: 'abc' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toMatch(/Datos del producto invalidos/);
+    });
+  });
+
   describe('POST /api/orders', () => {
     it('deberia descontar el stock correctamente', async () => {
       const response = await request(app)

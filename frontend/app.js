@@ -16,6 +16,7 @@ const elements = {
   productsGrid: document.getElementById('products-grid'),
   loadingMessage: document.getElementById('loading-message'),
   refreshButton: document.getElementById('refresh-btn'),
+  addProductButton: document.getElementById('add-product-btn'),
   toastContainer: document.getElementById('toast-container'),
   orderModal: document.getElementById('order-modal'),
   orderForm: document.getElementById('order-form'),
@@ -23,7 +24,14 @@ const elements = {
   quantityInput: document.getElementById('quantity-input'),
   modalStockInfo: document.getElementById('modal-stock-info'),
   cancelButton: document.getElementById('cancel-order-btn'),
-  submitButton: document.getElementById('submit-order-btn')
+  submitButton: document.getElementById('submit-order-btn'),
+  productModal: document.getElementById('product-modal'),
+  productForm: document.getElementById('product-form'),
+  productNameInput: document.getElementById('product-name-input'),
+  productStockInput: document.getElementById('product-stock-input'),
+  productPriceInput: document.getElementById('product-price-input'),
+  cancelProductButton: document.getElementById('cancel-product-btn'),
+  submitProductButton: document.getElementById('submit-product-btn')
 };
 
 let products = [];
@@ -105,6 +113,18 @@ function closeOrderModal() {
   elements.orderModal.classList.add('hidden');
 }
 
+function openProductModal() {
+  elements.productNameInput.value = '';
+  elements.productStockInput.value = '0';
+  elements.productPriceInput.value = '1.00';
+  elements.productModal.classList.remove('hidden');
+  elements.productNameInput.focus();
+}
+
+function closeProductModal() {
+  elements.productModal.classList.add('hidden');
+}
+
 async function loadProducts(showFeedback = false) {
   try {
     const response = await fetch(`${API_BASE_URL}/api/products`);
@@ -155,9 +175,44 @@ async function handleOrderSubmit(event) {
   }
 }
 
+async function handleProductSubmit(event) {
+  event.preventDefault();
+
+  const payload = {
+    name: elements.productNameInput.value.trim(),
+    stock: Number(elements.productStockInput.value),
+    price: Number(elements.productPriceInput.value)
+  };
+
+  try {
+    elements.submitProductButton.disabled = true;
+    const response = await fetch(`${API_BASE_URL}/api/products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'No se pudo agregar el producto');
+    }
+
+    closeProductModal();
+    showToast('success', `Producto agregado: ${result.name}`);
+    await loadProducts();
+  } catch (error) {
+    showToast('error', error.message);
+  } finally {
+    elements.submitProductButton.disabled = false;
+  }
+}
+
 elements.refreshButton.addEventListener('click', () => loadProducts(true));
+elements.addProductButton.addEventListener('click', openProductModal);
 elements.cancelButton.addEventListener('click', closeOrderModal);
+elements.cancelProductButton.addEventListener('click', closeProductModal);
 elements.orderForm.addEventListener('submit', handleOrderSubmit);
+elements.productForm.addEventListener('submit', handleProductSubmit);
 elements.productSelect.addEventListener('change', updateModalStockInfo);
 
 loadProducts();

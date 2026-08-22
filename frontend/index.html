@@ -30,20 +30,26 @@
           <p class="text-red-100 text-sm">Gestion de inventario en tiempo real</p>
         </div>
       </div>
-      <button id="refresh-btn" type="button"
-        class="flex items-center gap-2 bg-white text-coke font-bold px-4 py-2 rounded-full shadow hover:bg-red-50 transition">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Refrescar stock
-      </button>
+      <div class="flex flex-wrap items-center gap-3">
+        <button id="add-product-btn" type="button"
+          class="flex items-center gap-2 bg-ink text-white font-bold px-4 py-2 rounded-full shadow hover:bg-neutral-800 transition">
+          Agregar producto
+        </button>
+        <button id="refresh-btn" type="button"
+          class="flex items-center gap-2 bg-white text-coke font-bold px-4 py-2 rounded-full shadow hover:bg-red-50 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refrescar stock
+        </button>
+      </div>
     </div>
   </header>
 
   <main class="max-w-6xl mx-auto px-6 py-10 w-full flex-1">
     <section>
       <h2 class="text-xl font-bold mb-1">Productos disponibles</h2>
-      <p class="text-neutral-500 text-sm mb-6">Selecciona un producto para despachar un pedido.</p>
+      <p class="text-neutral-500 text-sm mb-6">Agrega productos al inventario o despacha un pedido.</p>
       <p id="loading-message" class="text-neutral-500 text-sm">Cargando productos...</p>
       <div id="products-grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
     </section>
@@ -75,6 +81,37 @@
             class="px-4 py-2 rounded-lg border border-neutral-300 font-semibold hover:bg-neutral-100 transition">Cancelar</button>
           <button type="submit" id="submit-order-btn"
             class="px-4 py-2 rounded-lg bg-coke text-white font-bold hover:bg-cokedark transition">Confirmar pedido</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="product-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      <h3 class="text-lg font-black mb-4 border-b-4 border-coke pb-2 inline-block">Agregar producto</h3>
+      <form id="product-form" class="space-y-4 mt-2">
+        <div>
+          <label for="product-name-input" class="block text-sm font-semibold mb-1">Nombre</label>
+          <input type="text" id="product-name-input" required maxlength="80" placeholder="Ej. Fanta Naranja 600ml"
+            class="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coke" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="product-stock-input" class="block text-sm font-semibold mb-1">Stock</label>
+            <input type="number" id="product-stock-input" min="0" step="1" value="0" required
+              class="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coke" />
+          </div>
+          <div>
+            <label for="product-price-input" class="block text-sm font-semibold mb-1">Precio</label>
+            <input type="number" id="product-price-input" min="0" step="0.01" value="1.00" required
+              class="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coke" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" id="cancel-product-btn"
+            class="px-4 py-2 rounded-lg border border-neutral-300 font-semibold hover:bg-neutral-100 transition">Cancelar</button>
+          <button type="submit" id="submit-product-btn"
+            class="px-4 py-2 rounded-lg bg-coke text-white font-bold hover:bg-cokedark transition">Guardar producto</button>
         </div>
       </form>
     </div>
