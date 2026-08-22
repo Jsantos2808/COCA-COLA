@@ -12,38 +12,44 @@ Este sistema usa **GitHub Actions** como motor de Integración Continua (CI).
 |----------|---------------------|
 | Workflow | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | Disparadores | `push` y `pull_request` a la rama `main` |
-| Job 1 | Instala dependencias, ejecuta **Jest** con cobertura y publica el artefacto |
-| Job 2 | Análisis **SonarCloud** (si existe el secreto `SONAR_TOKEN`) |
+| Job principal | Instala dependencias, ejecuta **Jest** con cobertura y analiza con **SonarQube Cloud** |
 | Evidencia en GitHub | Pestaña **Actions** del repositorio |
+| Evidencia Sonar | Dashboard del proyecto en [SonarCloud](https://sonarcloud.io) |
 
 Cada vez que se sube código a `main` (o se abre un PR), GitHub levanta un runner en la nube, clona el repo y ejecuta el pipeline sin intervención manual.
 
-### Cómo activarlo en tu cuenta de GitHub
+### Repositorio del proyecto
 
-1. Crea un repositorio vacío en GitHub (por ejemplo `coca-cola-stock-portal`).
-2. En esta carpeta (`producto_software`) inicializa Git y súbelo:
+- GitHub: https://github.com/Jsantos2808/COCA-COLA
+- Actions: https://github.com/Jsantos2808/COCA-COLA/actions
 
-```bash
-git init
-git add .
-git commit -m "ci: pipeline GitHub Actions para Stock Portal"
-git branch -M main
-git remote add origin https://github.com/TU_USUARIO/TU_REPO.git
-git push -u origin main
-```
+---
 
-3. Entra a tu repo en GitHub → pestaña **Actions**.
-4. Debe aparecer el workflow **CI - Coca-Cola Stock Portal** en ejecución (o ya finalizado).
-5. Si el check está en verde, el requisito de GitHub Actions queda demostrado.
+## Cumplimiento del requisito: SonarQube
 
-### (Opcional) SonarCloud
+Se usa **SonarQube Cloud** (SonarCloud): el mismo motor de SonarQube en la nube, integrado con GitHub Actions. Analiza bugs, code smells, vulnerabilidades y cobertura en cada push.
 
-1. Crea un proyecto en [SonarCloud](https://sonarcloud.io) y genera un token.
-2. En GitHub: **Settings → Secrets and variables → Actions → New repository secret**.
-3. Nombre: `SONAR_TOKEN` · Valor: el token de SonarCloud.
-4. El job de análisis se ejecutará en el siguiente push.
+| Elemento | Detalle |
+|----------|---------|
+| Configuración | [`sonar-project.properties`](sonar-project.properties) |
+| Paso en CI | Escaneo SonarCloud dentro de [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| Autenticación | Secreto de GitHub `SONAR_TOKEN` |
 
-Sin ese secreto, el job de pruebas **sigue corriendo** y cumple el requisito de CI con GitHub Actions.
+### Pasos para activar SonarQube Cloud (una sola vez)
+
+1. Entra a https://sonarcloud.io e inicia sesión con **GitHub** (cuenta `Jsantos2808`).
+2. Crea / elige una **Organization** (anota el **Organization Key**).
+3. **Analyze new project** → importa el repo `Jsantos2808/COCA-COLA`.
+4. Elige análisis con **GitHub Actions** (no Automatic Analysis).
+5. Copia el **Project Key** que te muestre (suele ser `Jsantos2808_COCA-COLA`).
+6. Genera un token: avatar → **My Account → Security → Generate Token**.
+7. En GitHub → repo **COCA-COLA** → **Settings → Secrets and variables → Actions**:
+   - Nombre: `SONAR_TOKEN`
+   - Valor: el token generado
+8. Actualiza en `sonar-project.properties` la línea `sonar.organization=` con tu Organization Key.
+9. Haz `git push` a `main` y verifica:
+   - En **Actions**: el paso "Escaneo de calidad SonarCloud" en verde
+   - En **SonarCloud**: el dashboard del proyecto con el Quality Gate
 
 ---
 
@@ -152,6 +158,6 @@ Portal de **stock en tiempo real**:
 ## Evidencia sugerida para la entrega académica
 
 1. Captura de la pestaña **Actions** con el workflow en verde.
-2. Detalle del job mostrando `npm ci` y `npm test`.
-3. (Opcional) Captura del Quality Gate en SonarCloud.
-4. Enlace al repositorio público o privado compartido con el docente.
+2. Detalle del job mostrando `npm ci`, `npm test` y el escaneo **SonarCloud**.
+3. Captura del **Quality Gate** / dashboard en SonarCloud.
+4. Enlace al repositorio: https://github.com/Jsantos2808/COCA-COLA
