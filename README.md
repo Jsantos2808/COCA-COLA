@@ -1,6 +1,6 @@
 # Coca-Cola DevOps Stock Portal
 
-Proyecto de gestion de inventario para **Coca-Cola** con persistencia en **SQLite** y pipeline **CI/CD** con GitHub Actions y SonarCloud.
+Proyecto de gestion de inventario para **Coca-Cola** con persistencia en **JSON** y pipeline **CI/CD** con GitHub Actions y SonarCloud.
 
 ---
 
@@ -13,7 +13,7 @@ producto_software/
 ├── docs/                   # Documentacion tecnica
 ├── scripts/                # Utilidades (instalar hooks)
 ├── src/                    # Codigo fuente
-│   ├── db/                 # Persistencia SQLite
+│   ├── db/                 # Persistencia JSON
 │   ├── middleware/
 │   ├── routes/
 │   ├── validators/
@@ -61,7 +61,7 @@ Portal de **stock en tiempo real** para Coca-Cola:
 2. Permite **agregar productos** al inventario.
 3. Permite **dar entrada de stock**.
 4. Permite **despachar pedidos** y descontar stock.
-5. **Persiste datos** en SQLite (`data/inventory.db`).
+5. **Persiste datos** en JSON (`data/inventory.json`).
 
 ---
 
