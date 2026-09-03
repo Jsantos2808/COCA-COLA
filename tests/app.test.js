@@ -1,12 +1,15 @@
 const request = require('supertest');
-
 const { createApp } = require('../src/app');
 
 describe('Coca-Cola Stock Portal API', () => {
   let app;
 
   beforeEach(() => {
-    app = createApp();
+    app = createApp({ dbPath: ':memory:' });
+  });
+
+  afterEach(() => {
+    app.closeDatabase();
   });
 
   describe('GET /api/health', () => {

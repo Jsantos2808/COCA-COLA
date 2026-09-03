@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = window.location.origin;
 
 const STOCK_BADGE_LEVELS = [
   { threshold: 100, className: 'bg-green-100 text-green-700' },
@@ -168,7 +168,7 @@ function closeEntryModal() {
 async function parseJsonResponse(response) {
   const contentType = response.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
-    throw new Error('La API no respondio correctamente. Reinicia el backend (npm start en /backend).');
+    throw new Error('La API no respondio correctamente. Reinicia el servidor (npm start).');
   }
   return response.json();
 }

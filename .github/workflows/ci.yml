@@ -1,7 +1,5 @@
 name: CI - Coca-Cola Stock Portal
 
-# Se dispara automaticamente en cada push o Pull Request hacia main.
-# Esto cumple el requisito de integracion continua con GitHub Actions.
 on:
   push:
     branches: [main]
@@ -26,14 +24,12 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Instalar dependencias del backend
-        working-directory: backend
+      - name: Instalar dependencias
         run: npm ci
 
       - name: Ejecutar pruebas unitarias con cobertura
-        working-directory: backend
         run: npm test -- --coverage
 
       - name: Publicar reporte de cobertura
@@ -41,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: backend/coverage
+          path: coverage
           retention-days: 7
 
       - name: Escaneo de calidad SonarCloud
