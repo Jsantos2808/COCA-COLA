@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const Database = require('better-sqlite3');
-const { DATA_DIR } = require('../config');
 
 const INITIAL_PRODUCTS = [
   { id: 1, name: 'Coca-Cola Original 600ml', stock: 150, price: 1.5 },
@@ -9,9 +8,10 @@ const INITIAL_PRODUCTS = [
   { id: 3, name: 'Sprite 600ml', stock: 45, price: 1.25 },
 ];
 
-function ensureDataDirectory() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+function ensureParentDirectory(dbPath) {
+  const directory = path.dirname(dbPath);
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
   }
 }
 
@@ -36,7 +36,7 @@ function seedProducts(db) {
 
 function createDatabase(dbPath) {
   if (dbPath !== ':memory:') {
-    ensureDataDirectory();
+    ensureParentDirectory(dbPath);
   }
 
   const db = new Database(dbPath);

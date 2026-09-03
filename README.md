@@ -29,7 +29,7 @@ Ver detalle en [`docs/architecture.md`](docs/architecture.md).
 
 ## Como ejecutar en local
 
-Requisito: **Node.js 18+**.
+Requisito: **Node.js 18+** (CI usa Node.js 22).
 
 ```bash
 npm install

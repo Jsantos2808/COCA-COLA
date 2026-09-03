@@ -68,6 +68,14 @@ describe('Coca-Cola Stock Portal API', () => {
       expect(response.status).toBe(400);
       expect(response.body.error).toMatch(/Datos del producto invalidos/);
     });
+
+    it('deberia retornar 400 cuando el cuerpo esta vacio', async () => {
+      const emptyResponse = await request(app).post('/api/products').send({});
+      const missingResponse = await request(app).post('/api/products');
+
+      expect(emptyResponse.status).toBe(400);
+      expect(missingResponse.status).toBe(400);
+    });
   });
 
   describe('POST /api/entries', () => {
@@ -161,6 +169,23 @@ describe('Coca-Cola Stock Portal API', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Cuerpo de la peticion invalido');
+    });
+
+    it('deberia retornar 400 cuando entries y orders llegan sin cuerpo', async () => {
+      const entryResponse = await request(app).post('/api/entries');
+      const orderResponse = await request(app).post('/api/orders');
+
+      expect(entryResponse.status).toBe(400);
+      expect(orderResponse.status).toBe(400);
+    });
+  });
+
+  describe('Interfaz web', () => {
+    it('deberia servir el portal en /', async () => {
+      const response = await request(app).get('/');
+
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('Coca-Cola Stock Portal');
     });
   });
 });

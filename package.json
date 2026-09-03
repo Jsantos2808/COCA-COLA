@@ -29,7 +29,8 @@
     ],
     "collectCoverageFrom": [
       "src/**/*.js",
-      "!src/public/**"
+      "!src/public/**",
+      "!src/server.js"
     ]
   }
 }
