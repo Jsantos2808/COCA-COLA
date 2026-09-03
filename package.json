@@ -11,11 +11,10 @@
     "hooks:install": "node scripts/install-hooks.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24 <25"
   },
   "license": "ISC",
   "dependencies": {
-    "better-sqlite3": "^11.8.1",
     "express": "^4.21.2"
   },
   "devDependencies": {

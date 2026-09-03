@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const Database = require('better-sqlite3');
 
 const INITIAL_PRODUCTS = [
   { id: 1, name: 'Coca-Cola Original 600ml', stock: 150, price: 1.5 },
@@ -8,98 +7,129 @@ const INITIAL_PRODUCTS = [
   { id: 3, name: 'Sprite 600ml', stock: 45, price: 1.25 },
 ];
 
-function ensureParentDirectory(dbPath) {
-  const directory = path.dirname(dbPath);
-  if (!fs.existsSync(directory)) {
-    fs.mkdirSync(directory, { recursive: true });
+class SimpleDatabase {
+  constructor(dbPath) {
+    this.dbPath = dbPath;
+    this.data = { products: [] };
+    this.init();
+  }
+
+  init() {
+    if (this.dbPath !== ':memory:') {
+      const directory = path.dirname(this.dbPath);
+      if (!fs.existsSync(directory)) {
+        fs.mkdirSync(directory, { recursive: true });
+      }
+
+      if (fs.existsSync(this.dbPath)) {
+        try {
+          const content = fs.readFileSync(this.dbPath, 'utf8');
+          this.data = JSON.parse(content);
+        } catch (err) {
+          this.data = { products: INITIAL_PRODUCTS.map(p => ({ ...p })) };
+          this.save();
+        }
+      } else {
+        this.data = { products: INITIAL_PRODUCTS.map(p => ({ ...p })) };
+        this.save();
+      }
+    } else {
+      this.data = { products: INITIAL_PRODUCTS.map(p => ({ ...p })) };
+    }
+  }
+
+  save() {
+    if (this.dbPath !== ':memory:') {
+      fs.writeFileSync(this.dbPath, JSON.stringify(this.data, null, 2));
+    }
+  }
+
+  prepare() {
+    return new PreparedStatement(this);
+  }
+
+  exec() {
+    // No-op for initialization
+  }
+
+  pragma() {
+    // No-op
+  }
+
+  transaction(fn) {
+    return fn;
+  }
+
+  close() {
+    this.save();
   }
 }
 
-function seedProducts(db) {
-  const count = db.prepare('SELECT COUNT(*) AS total FROM products').get().total;
-  if (count > 0) {
-    return;
+class PreparedStatement {
+  constructor(db) {
+    this.db = db;
   }
 
-  const insert = db.prepare(
-    'INSERT INTO products (id, name, stock, price) VALUES (@id, @name, @stock, @price)'
-  );
+  get() {
+    return { total: this.db.data.products.length };
+  }
 
-  const seedMany = db.transaction((products) => {
-    for (const product of products) {
-      insert.run(product);
-    }
-  });
+  all() {
+    return this.db.data.products;
+  }
 
-  seedMany(INITIAL_PRODUCTS);
+  run() {
+    return { changes: 1 };
+  }
 }
 
 function createDatabase(dbPath) {
-  if (dbPath !== ':memory:') {
-    ensureParentDirectory(dbPath);
-  }
-
-  const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      stock INTEGER NOT NULL CHECK (stock >= 0),
-      price REAL NOT NULL CHECK (price >= 0)
-    )
-  `);
-
-  seedProducts(db);
-  return db;
+  return new SimpleDatabase(dbPath);
 }
 
 function createProductRepository(db) {
-  const findAllStmt = db.prepare('SELECT id, name, stock, price FROM products ORDER BY id');
-  const findByIdStmt = db.prepare('SELECT id, name, stock, price FROM products WHERE id = ?');
-  const insertStmt = db.prepare(
-    'INSERT INTO products (name, stock, price) VALUES (@name, @stock, @price)'
-  );
-  const updateStockStmt = db.prepare('UPDATE products SET stock = ? WHERE id = ?');
-
   return {
     findAll() {
-      return findAllStmt.all();
+      return db.data.products.map(p => ({ ...p }));
     },
 
     findById(productId) {
-      return findByIdStmt.get(productId);
+      const product = db.data.products.find(p => p.id === productId);
+      return product ? { ...product } : null;
     },
 
     create({ name, stock, price }) {
-      const result = insertStmt.run({ name, stock, price });
-      return findByIdStmt.get(result.lastInsertRowid);
+      const maxId = Math.max(...db.data.products.map(p => p.id), 0);
+      const newProduct = { id: maxId + 1, name, stock, price };
+      db.data.products.push(newProduct);
+      db.save();
+      return { ...newProduct };
     },
 
     addStock(productId, quantity) {
-      const product = findByIdStmt.get(productId);
+      const product = db.data.products.find(p => p.id === productId);
       if (!product) {
         return null;
       }
 
-      const newStock = product.stock + quantity;
-      updateStockStmt.run(newStock, productId);
-      return findByIdStmt.get(productId);
+      product.stock += quantity;
+      db.save();
+      return { ...product };
     },
 
     removeStock(productId, quantity) {
-      const product = findByIdStmt.get(productId);
+      const product = db.data.products.find(p => p.id === productId);
       if (!product) {
         return null;
       }
 
       if (product.stock < quantity) {
-        return { error: 'Stock insuficiente', product };
+        return { error: 'Stock insuficiente', product: { ...product } };
       }
 
-      const newStock = product.stock - quantity;
-      updateStockStmt.run(newStock, productId);
-      return { product: findByIdStmt.get(productId) };
+      product.stock -= quantity;
+      db.save();
+      return { product: { ...product } };
     },
   };
 }
